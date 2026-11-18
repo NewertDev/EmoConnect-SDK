@@ -1,0 +1,25 @@
+name: emoconnect_sdk_example
+description: "Demonstrates how to use the emoconnect_sdk package."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  emoconnect_sdk:
+    path: ../
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

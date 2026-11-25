@@ -1,4 +1,4 @@
-# EmoConnect SDK (Flutter) 0.1.0
+# EmoConnect SDK (Flutter) 0.2.0
 
 EmoConnect 기기에 연결해 PPG, 움직임(가속도·회전·지자기), 배터리 상태를 받는 Flutter 패키지입니다.
 라이선스가 있으면 정제된 PPG 파형과 심박, 착용·움직임 상태도 함께 받습니다.
@@ -10,9 +10,10 @@ EmoConnect 기기에 연결해 PPG, 움직임(가속도·회전·지자기), 배
 | 플랫폼 | 지원 |
 |---|---|
 | Android | 7.0 (API 24) 이상, arm64-v8a / armeabi-v7a / x86_64 |
+| iOS | 15.0 이상 (기기 arm64, 시뮬레이터 arm64 / x86_64) |
+| macOS | 12.0 이상, Apple Silicon / Intel |
 | Windows | 10 이상, x64 |
 | Linux | 준비 중 (다음 버전) |
-| iOS | 준비 중 (다음 버전) |
 
 지원 기기: 이름이 `EmoConnect`로 시작하는 기기 (펌웨어 v1.0 계열).
 
@@ -28,7 +29,7 @@ dependencies:
   emoconnect_sdk:
     git:
       url: https://github.com/NewertDev/EmoConnect-SDK.git
-      ref: v0.1.0
+      ref: v0.2.0
 ```
 
 zip으로 받았다면 `emoconnect_sdk` 폴더를 프로젝트 옆에 두고 경로로 추가합니다.
@@ -171,7 +172,7 @@ await device.disconnect();
 화면이 꺼진 상태에서도 측정과 재연결이 이어지게 하려면 앱에서 포그라운드 서비스
 (`connectedDevice` 유형)를 실행해야 합니다. SDK는 서비스를 띄우지 않습니다.
 
-### iOS (다음 버전)
+### iOS
 
 `ios/Runner/Info.plist`에 블루투스 사용 문구를 넣습니다.
 
@@ -179,6 +180,38 @@ await device.disconnect();
 <key>NSBluetoothAlwaysUsageDescription</key>
 <string>EmoConnect 기기와 연결하는 데 블루투스를 사용합니다.</string>
 ```
+
+배포 대상은 15.0 이상이어야 합니다. `ios/Podfile`의 `platform :ios, '15.0'`과 Xcode 프로젝트의
+iOS Deployment Target을 15.0 이상으로 맞춥니다.
+
+- 블루투스 권한은 앱이 처음 검색할 때 iOS가 직접 묻습니다. `permission_handler`의 `bluetoothScan`,
+  `bluetoothConnect`는 Android 전용이라 iOS에서는 항상 거절로 나오므로, iOS에서는 요청하지 마세요.
+- 기기에 따라 연결할 때 iOS가 블루투스 페어링 요청 창을 띄울 수 있습니다. 창이 떠 있는 동안에도 측정은 됩니다.
+- 앱이 백그라운드로 가면 iOS가 앱을 멈출 수 있습니다. 백그라운드에서도 측정을 이어 가려면
+  `Info.plist`의 `UIBackgroundModes`에 `bluetooth-central`을 넣는 등 앱에서 준비해야 합니다.
+
+### macOS
+
+`macos/Runner/DebugProfile.entitlements`와 `macos/Runner/Release.entitlements` 두 파일에 블루투스와
+네트워크(라이선스 확인) 권한을 넣습니다.
+
+```xml
+<key>com.apple.security.device.bluetooth</key>
+<true/>
+<key>com.apple.security.network.client</key>
+<true/>
+```
+
+`macos/Runner/Info.plist`에 블루투스 사용 문구를 넣습니다.
+
+```xml
+<key>NSBluetoothAlwaysUsageDescription</key>
+<string>EmoConnect 기기와 연결하는 데 블루투스를 사용합니다.</string>
+```
+
+배포 대상은 12.0 이상이어야 합니다. 이전 Flutter로 만든 프로젝트는 10.15로 되어 있을 수 있으니
+`macos/Podfile`의 `platform :osx, '12.0'`과 Xcode 프로젝트의 macOS Deployment Target을 12.0 이상으로 맞춥니다.
+블루투스 권한은 앱이 처음 검색할 때 macOS가 직접 묻습니다.
 
 ### Linux (다음 버전)
 

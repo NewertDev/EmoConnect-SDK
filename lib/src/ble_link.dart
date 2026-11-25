@@ -72,12 +72,32 @@ class UniversalBleLink implements BleLink {
     UniversalBle.onValueChange = (deviceId, characteristic, value) {
       _values.add(LinkValue(deviceId, _normal(characteristic), value));
     };
+    // iOS and macOS do not report a disconnection for each device when
+    // Bluetooth itself goes off; only the adapter state changes. Without
+    // this the SDK would wait on a link that is gone. A scan asked for while
+    // Bluetooth was off is dropped by the system, so it is asked for again
+    // when Bluetooth comes back.
+    if (Platform.isIOS || Platform.isMacOS) {
+      UniversalBle.onAvailabilityChange = (state) {
+        if (state == AvailabilityState.poweredOn) {
+          final service = _scanService;
+          if (service != null) unawaited(_startScan(service).catchError((Object _) {}));
+        } else if (state != AvailabilityState.unknown) {
+          _adapterOff.add(null);
+        }
+      };
+    }
   }
 
   final StreamController<FoundDevice> _scan =
       StreamController<FoundDevice>.broadcast(sync: true);
   final StreamController<LinkValue> _values =
       StreamController<LinkValue>.broadcast(sync: true);
+  final StreamController<void> _adapterOff =
+      StreamController<void>.broadcast(sync: true);
+
+  /// The service of the scan in progress (null when not scanning).
+  String? _scanService;
 
   static String _normal(String uuid) => BleUuidParser.string(uuid).toLowerCase();
 
@@ -87,12 +107,37 @@ class UniversalBleLink implements BleLink {
   @override
   Stream<LinkValue> get values => _values.stream;
 
+  /// The device's connection state; on iOS and macOS also `false` when
+  /// Bluetooth goes off (see the constructor).
   @override
-  Stream<bool> connection(String deviceId) =>
-      UniversalBle.connectionStream(deviceId).map((u) => u.isConnected);
+  Stream<bool> connection(String deviceId) {
+    final subscriptions = <StreamSubscription<Object?>>[];
+    late final StreamController<bool> out;
+    out = StreamController<bool>(
+      sync: true,
+      onListen: () {
+        subscriptions
+          ..add(UniversalBle.connectionStream(deviceId)
+              .map((u) => u.isConnected)
+              .listen(out.add, onError: out.addError))
+          ..add(_adapterOff.stream.listen((_) => out.add(false)));
+      },
+      onCancel: () async {
+        for (final s in subscriptions) {
+          await s.cancel();
+        }
+      },
+    );
+    return out.stream;
+  }
 
   @override
-  Future<void> startScan(String service) => UniversalBle.startScan(
+  Future<void> startScan(String service) {
+    _scanService = service;
+    return _startScan(service);
+  }
+
+  Future<void> _startScan(String service) => UniversalBle.startScan(
         // Android only keeps a scan alive with the screen off when it has a
         // filter. Elsewhere a filter could hide the part of the
         // advertisement that carries the name.
@@ -101,7 +146,10 @@ class UniversalBleLink implements BleLink {
       );
 
   @override
-  Future<void> stopScan() => UniversalBle.stopScan();
+  Future<void> stopScan() {
+    _scanService = null;
+    return UniversalBle.stopScan();
+  }
 
   @override
   Future<void> connect(String deviceId, Duration timeout) =>

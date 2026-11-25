@@ -1,3 +1,13 @@
+## 0.2.0
+
+- iOS (15.0 and later) and macOS (12.0 and later, Apple Silicon and Intel).
+- iOS and macOS: when Bluetooth is switched off during a connection the SDK
+  now notices the lost link and starts reconnecting, and searches again once
+  Bluetooth is back (the system reports only the adapter state there).
+- Example app: iOS no longer asks for the Android-only Bluetooth
+  permissions (they were always refused there and blocked the scan); iOS
+  deployment target 15.0; macOS runner added.
+
 ## 0.1.0
 
 - First release: scan, connect, start/stop; PPG, motion and battery

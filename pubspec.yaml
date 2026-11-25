@@ -1,6 +1,6 @@
 name: emoconnect_sdk
 description: "EmoConnect SDK: connect to EmoConnect devices and receive PPG, motion and battery data, and with a licence the processed PPG waveform and the heart rate."
-version: 0.1.0
+version: 0.2.0
 publish_to: 'none'
 
 environment:
@@ -27,6 +27,7 @@ flutter:
   #   linux/lib/libemoconnect_core.so
   #   windows/lib/emoconnect_core.dll
   #   ios/Frameworks/EmoConnectCore.xcframework
+  #   macos/Frameworks/EmoConnectCore.xcframework
   plugin:
     platforms:
       android:
@@ -34,6 +35,8 @@ flutter:
       ios:
         ffiPlugin: true
       linux:
+        ffiPlugin: true
+      macos:
         ffiPlugin: true
       windows:
         ffiPlugin: true

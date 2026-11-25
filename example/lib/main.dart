@@ -91,7 +91,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> _permissions() async {
-    if (!Platform.isAndroid && !Platform.isIOS) return true;
+    // Android asks at run time. iOS and macOS ask by themselves the first
+    // time Bluetooth is used (the scan permissions below are Android only;
+    // on iOS permission_handler reports them as permanently denied).
+    if (!Platform.isAndroid) return true;
     final results = await [
       Permission.bluetoothScan,
       Permission.bluetoothConnect,

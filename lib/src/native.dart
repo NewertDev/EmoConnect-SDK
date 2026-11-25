@@ -190,7 +190,7 @@ class CoreLibrary {
       return DynamicLibrary.open('libemoconnect_core.so');
     }
     if (Platform.isWindows) return DynamicLibrary.open('emoconnect_core.dll');
-    if (Platform.isIOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
       return DynamicLibrary.open('EmoConnectCore.framework/EmoConnectCore');
     }
     throw UnsupportedError(

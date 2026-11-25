@@ -5,7 +5,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'emoconnect_sdk'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'EmoConnect SDK'
   s.description      = 'Connect to EmoConnect devices and receive PPG and motion data.'
   s.homepage         = 'https://newert.co.kr'
